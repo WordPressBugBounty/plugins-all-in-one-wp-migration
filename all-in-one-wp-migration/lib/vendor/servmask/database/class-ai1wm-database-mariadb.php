@@ -28,33 +28,55 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Kangaroos cannot jump here' );
 }
-?>
 
-<div class="ai1wm-social-share-wrapper">
-	<a href="https://twitter.com/intent/tweet?text=Check+this+epic+WordPress+Migration+plugin&url=https://servmask.com&via=servmask"
-		class="ai1wm-social-icon icon-x"
-		target="_blank"
-		rel="noopener"
-		title="<?php esc_attr_e( 'Share on X', 'all-in-one-wp-migration' ); ?>"
-		aria-label="<?php esc_attr_e( 'Share on X', 'all-in-one-wp-migration' ); ?>">
-		<i class="ai1wm-icon-x" aria-hidden="true"></i>
-	</a>
+class Ai1wm_Database_Mariadb extends Ai1wm_Database_Mysqli {
 
-	<a href="https://www.facebook.com/sharer/sharer.php?u=https://servmask.com"
-		class="ai1wm-social-icon icon-facebook"
-		target="_blank"
-		rel="noopener"
-		title="<?php esc_attr_e( 'Share on Facebook', 'all-in-one-wp-migration' ); ?>"
-		aria-label="<?php esc_attr_e( 'Share on Facebook', 'all-in-one-wp-migration' ); ?>">
-		<i class="ai1wm-icon-facebook" aria-hidden="true"></i>
-	</a>
+	/**
+	 * Replace column types
+	 *
+	 * @param  string $input Column value
+	 * @return string
+	 */
+	protected function replace_column_types( $input ) {
+		static $search  = null;
+		static $replace = null;
 
-	<a href="https://www.youtube.com/channel/UCWMNPEnX7KyDLknpcmPaSwg?sub_confirmation=1"
-		class="ai1wm-social-icon icon-youtube"
-		target="_blank"
-		rel="noopener"
-		title="<?php esc_attr_e( 'Subscribe on YouTube', 'all-in-one-wp-migration' ); ?>"
-		aria-label="<?php esc_attr_e( 'Subscribe on YouTube', 'all-in-one-wp-migration' ); ?>">
-		<i class="ai1wm-icon-youtube" aria-hidden="true"></i>
-	</a>
-</div>
+		// Cache column types on first call
+		if ( is_null( $search ) || is_null( $replace ) ) {
+			$search  = array();
+			$replace = array();
+
+			// Convert INET4 column type (10.10.0)
+			if ( version_compare( $this->server_version(), '10.10.0', '<' ) ) {
+				$search[]  = '/\bINET4\b(?!\s*\()/i';
+				$replace[] = 'VARCHAR(15)';
+			}
+
+			// Convert INET6 column type (10.5.0)
+			if ( version_compare( $this->server_version(), '10.5.0', '<' ) ) {
+				$search[]  = '/\bINET6\b(?!\s*\()/i';
+				$replace[] = 'VARCHAR(45)';
+			}
+
+			// Convert UUID column type (10.7.0)
+			if ( version_compare( $this->server_version(), '10.7.0', '<' ) ) {
+				$search[]  = '/\bUUID\b(?!\s*\()/i';
+				$replace[] = 'CHAR(36)';
+			}
+
+			// Convert XMLTYPE column type (12.3.0)
+			if ( version_compare( $this->server_version(), '12.3.0', '<' ) ) {
+				$search[]  = '/\bXMLTYPE\b(?!\s*\()/i';
+				$replace[] = 'LONGTEXT';
+			}
+
+			// Convert VECTOR(N) column type (11.7.1)
+			if ( version_compare( $this->server_version(), '11.7.1', '<' ) ) {
+				$search[]  = '/\bVECTOR\s*\(\s*\d+\s*\)/i';
+				$replace[] = 'BLOB';
+			}
+		}
+
+		return preg_replace( $search, $replace, $input );
+	}
+}
