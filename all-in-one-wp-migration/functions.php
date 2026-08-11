@@ -2477,6 +2477,7 @@ function ai1wm_allowed_html_tags() {
 		),
 		'br'     => array(),
 		'em'     => array(),
+		'h3'     => array(),
 		'i'      => array(
 			'class'       => array(),
 			'aria-hidden' => array(),
@@ -2484,16 +2485,6 @@ function ai1wm_allowed_html_tags() {
 		),
 		'small'  => array(),
 		'strong' => array(),
-		'input'  => array(
-			'type'       => array(),
-			'name'       => array(),
-			'aria-label' => array(),
-			'style'      => array(),
-			'id'         => array(),
-			'value'      => array(),
-			'class'      => array(),
-			'disabled'   => array(),
-		),
 	);
 }
 
