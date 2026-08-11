@@ -2485,6 +2485,16 @@ function ai1wm_allowed_html_tags() {
 		),
 		'small'  => array(),
 		'strong' => array(),
+		'input'  => array(
+			'type'       => array(),
+			'name'       => array(),
+			'aria-label' => array(),
+			'style'      => array(),
+			'id'         => array(),
+			'value'      => array(),
+			'class'      => array(),
+			'disabled'   => array(),
+		),
 	);
 }
 
